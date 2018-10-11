@@ -162,31 +162,44 @@ uiController = (function() {
             CONTAINER: '.container',
             EXPENSE_ITEM_PERCENTAGE: '.item__percentage',
             EXPENSES_LIST_CONTAINER: '.expenses__list',
-            INCOMES_LIST_CONTAINER: '.income__list'
+            INCOMES_LIST_CONTAINER: '.income__list',
+            UPDATE_DESCRIPTION: '.update__description',
+            UPDATE_VALUE: '.update__value'
         },
         EVENTS: {
             CHANGE: 'change',
             CLICK: 'click',
-            KEYPRESS: 'keypress'
+            KEYUP: 'keyup'
         },
         HTML: {
-            EXPENSE: '<div class="item clearfix" id="exp-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>',
-            INCOME: '<div class="item clearfix" id="inc-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
+            EXPENSE: '<div class="item clearfix" id="exp-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">21%</div><div class="item__update"><button class="item__update--btn"><i class="ion-ios-settings"></i></button></div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>',
+            INCOME: '<div class="item clearfix" id="inc-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__update"><button class="item__update--btn"><i class="ion-ios-settings"></i></button></div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
         },
         PARAMETERS: {
             BEFORE_END: 'beforeend'
         },
         STRINGS: {
+            BLOCK: 'block',
+            BUTTON: 'BUTTON',
+            CLOSE: 'close',
+            ENTER: 'Enter',
+            ESCAPE: 'Escape',
             EXP: 'exp',
+            HYPHEN: '-',
             INC: 'inc',
+            ITEM_DELETE: 'item__delete',
+            ITEM_UPDATE: 'item__update',
             MINUS: '-',
+            NONE: 'none',
+            OVERLAY: 'overlay',
             PERCENTAGE_LESS_THAN_ONE: '---',
             PLUS: '+',
             RED: 'red',
             RED_FOCUS: 'red-focus',
             REPLACE_DESCRIPTION: '%description%',
             REPLACE_ID: '%id%',
-            REPLACE_VALUE: '%value%'
+            REPLACE_VALUE: '%value%',
+            UPDATE: 'update'
         }
     };
 
@@ -264,6 +277,9 @@ uiController = (function() {
 
             listArray[0].focus();
         },
+        closeOverlay: function() {
+            document.getElementById(CONSTS_STRINGS.STRINGS.OVERLAY).style.display = CONSTS_STRINGS.STRINGS.NONE;
+        },
         deleteListItem: function(selectorId) {
             let element;
 
@@ -321,13 +337,27 @@ uiController = (function() {
                 type: document.querySelector(CONSTS_STRINGS.CLASSES.ADD_TYPE).value,
                 value: parseFloat(document.querySelector(CONSTS_STRINGS.CLASSES.ADD_VALUE).value)
             }
+        },
+        openOverlay: function(description, type, value) {
+            document.getElementById(CONSTS_STRINGS.STRINGS.OVERLAY).style.display = CONSTS_STRINGS.STRINGS.BLOCK;
+            document.querySelector(CONSTS_STRINGS.CLASSES.UPDATE_DESCRIPTION).value = description;
+            document.querySelector(CONSTS_STRINGS.CLASSES.UPDATE_VALUE).value = value;
+        },
+        unFormatNumbers: function(string) {
+            let strNum,
+                value;
+
+            strNum = string.split(' ')[1];
+            value = (strNum.length <= 6) ? strNum : `${strNum.slice(0, strNum.length - 7)}${strNum.slice(strNum.length - 6)}`;
+
+            return  value;
         }
     }
 })();
 
 appController = (function(budgetCtrl, uiCtrl) {
     let ctrlAddItem,
-        ctrlDeleteItem,
+        ctrlManageItem,
         ctrlSetEventsListeners,
         ctrlUpdateBudget,
         ctrlUpdateItemsPercentages,
@@ -349,22 +379,39 @@ appController = (function(budgetCtrl, uiCtrl) {
         }
     };
 
-    ctrlDeleteItem = function(e) {
-        let listItemDomId,
+    ctrlManageItem = function(e) {
+        let absoluteTarget,
+            description,
+            listItemDomId,
             listItemId,
             listItemType,
-            split;
+            listItemEventChecker,
+            splitForId,
+            value;
 
-        listItemDomId = e.target.parentNode.parentNode.parentNode.parentNode.id;
+        // Validation for diferentiation of e.target on Chrome and FireFox browsers
+        e.target.tagName === CTRL_STRINGS.STRINGS.BUTTON ? absoluteTarget = e.target : absoluteTarget = e.target.parentNode;
+
+        description = absoluteTarget.parentNode.parentNode.parentNode.childNodes[0].textContent;
+        listItemDomId = absoluteTarget.parentNode.parentNode.parentNode.id;
+        listItemEventChecker = absoluteTarget.parentNode.className;
+        value = parseInt(uiCtrl.unFormatNumbers(absoluteTarget.parentNode.parentNode.textContent));
 
         if (listItemDomId) {
-            split = listItemDomId.split('-');
-            listItemId = parseInt(split[1]);
-            listItemType = split[0];
+            splitForId = listItemDomId.split(CTRL_STRINGS.STRINGS.HYPHEN);
+            listItemId = parseInt(splitForId[1]);
+            listItemType = splitForId[0];
         }
 
-        budgetCtrl.deleteItemFromData(listItemId, listItemType);
-        uiCtrl.deleteListItem(listItemDomId);
+        if (listItemEventChecker === CTRL_STRINGS.STRINGS.ITEM_DELETE) {
+            // Delete item
+            budgetCtrl.deleteItemFromData(listItemId, listItemType);
+            uiCtrl.deleteListItem(listItemDomId);
+        } else if (listItemEventChecker === CTRL_STRINGS.STRINGS.ITEM_UPDATE) {
+            // Update item
+            uiCtrl.openOverlay(description, listItemType, value);
+        }
+
         ctrlUpdateBudget();
         ctrlUpdateItemsPercentages();
     };
@@ -372,15 +419,21 @@ appController = (function(budgetCtrl, uiCtrl) {
     ctrlSetEventsListeners = function() {
         CTRL_STRINGS = uiCtrl.getConstsStrings();
 
-        document.querySelector(CTRL_STRINGS.CLASSES.ADD_BTN).addEventListener(CTRL_STRINGS.EVENTS.CLICK, ctrlAddItem);
         // e references event being passed
-        document.addEventListener(CTRL_STRINGS.EVENTS.KEYPRESS, function(e) {
-            if (e.keyCode === 13 || e.which === 13) {
+        document.addEventListener(CTRL_STRINGS.EVENTS.KEYUP, function(e) {
+            if (e.keyCode === 13 || e.which === 13 || e.key === CTRL_STRINGS.STRINGS.ENTER) {
                 ctrlAddItem();
             }
+
+            if (e.keyCode === 27 || e.which === 27 || e.key === CTRL_STRINGS.STRINGS.ESCAPE) {
+                uiCtrl.closeOverlay();
+            }
         });
-        document.querySelector(CTRL_STRINGS.CLASSES.CONTAINER).addEventListener(CTRL_STRINGS.EVENTS.CLICK, ctrlDeleteItem);
+        document.querySelector(CTRL_STRINGS.CLASSES.ADD_BTN).addEventListener(CTRL_STRINGS.EVENTS.CLICK, ctrlAddItem);
+        document.querySelector(CTRL_STRINGS.CLASSES.CONTAINER).addEventListener(CTRL_STRINGS.EVENTS.CLICK, ctrlManageItem);
         document.querySelector(CTRL_STRINGS.CLASSES.ADD_TYPE).addEventListener(CTRL_STRINGS.EVENTS.CHANGE, uiCtrl.changeType);
+        document.getElementById(CTRL_STRINGS.STRINGS.CLOSE).addEventListener(CTRL_STRINGS.EVENTS.CLICK, uiCtrl.closeOverlay);
+        //document.getElementById(CTRL_STRINGS.STRINGS.UPDATE).addEventListener(CTRL_STRINGS.EVENTS.CLICK, !!!!!EVENT MISSING HERE!!!!!); PENDING
     };
 
     ctrlUpdateBudget = function() {
