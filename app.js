@@ -20,7 +20,7 @@ budgetController = (function() {
         percentage: -1,
         totals: {
             exp: 0,
-            inc:0
+            inc: 0
         }
     };
 
@@ -125,6 +125,9 @@ budgetController = (function() {
                 totalPercentage: data.percentage
             };
         },
+        getItemFromData: function(itemId, itemType) {
+            return data.allItems[itemType][itemId];
+        },
         getPercentages: function() {
             let allPercentages;
 
@@ -134,12 +137,16 @@ budgetController = (function() {
 
             return allPercentages;
         },
-        /*
-        // Not for production, just for testing , REMOVE AT THE END
-        testing: function() {
-            console.log(data);
-        }
-        */
+        updateItemOnData: function(desc, id, type, val) {
+            data.allItems[type][id].description = desc;
+            data.allItems[type][id].value = val;
+        },
+/*
+// Not for production, just for testing , REMOVE AT THE END
+testing: function() {
+    console.log(data);
+}
+*/
     };
 })();
 
@@ -154,6 +161,7 @@ uiController = (function() {
             ADD_DESCRIPTION: '.add__description',
             ADD_TYPE: '.add__type',
             ADD_VALUE: '.add__value',
+            CLOSE_OVERLAY_BTN: '.close__overlay--btn',
             BUDGET_LABEL: '.budget__value',
             BUDGET_EXPENSE_LABEL: '.budget__expenses--value',
             BUDGET_INCOME_LABEL: '.budget__income--value',
@@ -163,6 +171,7 @@ uiController = (function() {
             EXPENSE_ITEM_PERCENTAGE: '.item__percentage',
             EXPENSES_LIST_CONTAINER: '.expenses__list',
             INCOMES_LIST_CONTAINER: '.income__list',
+            UPDATE_BTN: '.update--btn',
             UPDATE_DESCRIPTION: '.update__description',
             UPDATE_VALUE: '.update__value'
         },
@@ -195,6 +204,7 @@ uiController = (function() {
             PERCENTAGE_LESS_THAN_ONE: '---',
             PLUS: '+',
             RED: 'red',
+            RED_BACKGROUND: 'red-background',
             RED_FOCUS: 'red-focus',
             REPLACE_DESCRIPTION: '%description%',
             REPLACE_ID: '%id%',
@@ -253,7 +263,7 @@ uiController = (function() {
         changeType: function() {
             let button,
                 fields;
-            
+
             button = document.querySelector(CONSTS_STRINGS.CLASSES.ADD_BTN);
             fields = document.querySelectorAll(`${CONSTS_STRINGS.CLASSES.ADD_DESCRIPTION},${CONSTS_STRINGS.CLASSES.ADD_TYPE},${CONSTS_STRINGS.CLASSES.ADD_VALUE}`);
 
@@ -338,28 +348,41 @@ uiController = (function() {
                 value: parseFloat(document.querySelector(CONSTS_STRINGS.CLASSES.ADD_VALUE).value)
             }
         },
-        openOverlay: function(description, type, value) {
-            document.getElementById(CONSTS_STRINGS.STRINGS.OVERLAY).style.display = CONSTS_STRINGS.STRINGS.BLOCK;
-            document.querySelector(CONSTS_STRINGS.CLASSES.UPDATE_DESCRIPTION).value = description;
-            document.querySelector(CONSTS_STRINGS.CLASSES.UPDATE_VALUE).value = value;
+        getInputOverlay: function() {
+            return {
+                description: document.querySelector(CONSTS_STRINGS.CLASSES.UPDATE_DESCRIPTION).value,
+                value: parseInt(document.querySelector(CONSTS_STRINGS.CLASSES.UPDATE_VALUE).value)
+            }
         },
-        unFormatNumbers: function(string) {
-            let strNum,
-                value;
+        openOverlay: function(desc, type, val) {
+            if (type === CONSTS_STRINGS.STRINGS.EXP) {
+                document.querySelector(CONSTS_STRINGS.CLASSES.CLOSE_OVERLAY_BTN).classList.toggle(CONSTS_STRINGS.STRINGS.RED);
+                document.querySelector(CONSTS_STRINGS.CLASSES.UPDATE_BTN).classList.toggle(CONSTS_STRINGS.STRINGS.RED_BACKGROUND);
+                document.querySelector(CONSTS_STRINGS.CLASSES.UPDATE_DESCRIPTION).classList.toggle(CONSTS_STRINGS.STRINGS.RED_FOCUS);
+                document.querySelector(CONSTS_STRINGS.CLASSES.UPDATE_VALUE).classList.toggle(CONSTS_STRINGS.STRINGS.RED_FOCUS);
+            }
 
-            strNum = string.split(' ')[1];
-            value = (strNum.length <= 6) ? strNum : `${strNum.slice(0, strNum.length - 7)}${strNum.slice(strNum.length - 6)}`;
+            document.getElementById(CONSTS_STRINGS.STRINGS.OVERLAY).style.display = CONSTS_STRINGS.STRINGS.BLOCK;
+            document.querySelector(CONSTS_STRINGS.CLASSES.UPDATE_DESCRIPTION).value = desc;
+            document.querySelector(CONSTS_STRINGS.CLASSES.UPDATE_VALUE).value = val;
+        },
+        updateListItem: function(desc, id, type, val) {
+            let item;
 
-            return  value;
-        }
+            item = document.getElementById(`${type}-${id}`).children;
+            item[0].textContent = desc;
+            item[1].children[0].textContent = formatNumbers(val, type);
+        },
     }
 })();
 
 appController = (function(budgetCtrl, uiCtrl) {
     let ctrlAddItem,
+        ctrlEdit,
         ctrlManageItem,
         ctrlSetEventsListeners,
         ctrlUpdateBudget,
+        ctrlUpdateItems,
         ctrlUpdateItemsPercentages,
         CTRL_STRINGS;
 
@@ -381,35 +404,37 @@ appController = (function(budgetCtrl, uiCtrl) {
 
     ctrlManageItem = function(e) {
         let absoluteTarget,
-            description,
+            itemData,
             listItemDomId,
             listItemId,
             listItemType,
             listItemEventChecker,
-            splitForId,
-            value;
+            splitForId;
 
         // Validation for diferentiation of e.target on Chrome and FireFox browsers
         e.target.tagName === CTRL_STRINGS.STRINGS.BUTTON ? absoluteTarget = e.target : absoluteTarget = e.target.parentNode;
-
-        description = absoluteTarget.parentNode.parentNode.parentNode.childNodes[0].textContent;
         listItemDomId = absoluteTarget.parentNode.parentNode.parentNode.id;
         listItemEventChecker = absoluteTarget.parentNode.className;
-        value = parseInt(uiCtrl.unFormatNumbers(absoluteTarget.parentNode.parentNode.textContent));
 
         if (listItemDomId) {
             splitForId = listItemDomId.split(CTRL_STRINGS.STRINGS.HYPHEN);
             listItemId = parseInt(splitForId[1]);
             listItemType = splitForId[0];
+            itemData = budgetCtrl.getItemFromData(listItemId, listItemType);
         }
 
         if (listItemEventChecker === CTRL_STRINGS.STRINGS.ITEM_DELETE) {
             // Delete item
             budgetCtrl.deleteItemFromData(listItemId, listItemType);
             uiCtrl.deleteListItem(listItemDomId);
-        } else if (listItemEventChecker === CTRL_STRINGS.STRINGS.ITEM_UPDATE) {
+        } else {
             // Update item
-            uiCtrl.openOverlay(description, listItemType, value);
+            ctrlEdit =  {
+                id: itemData.id,
+                type: listItemType
+            };
+
+            uiCtrl.openOverlay(itemData.description, ctrlEdit.type, itemData.value);
         }
 
         ctrlUpdateBudget();
@@ -433,7 +458,7 @@ appController = (function(budgetCtrl, uiCtrl) {
         document.querySelector(CTRL_STRINGS.CLASSES.CONTAINER).addEventListener(CTRL_STRINGS.EVENTS.CLICK, ctrlManageItem);
         document.querySelector(CTRL_STRINGS.CLASSES.ADD_TYPE).addEventListener(CTRL_STRINGS.EVENTS.CHANGE, uiCtrl.changeType);
         document.getElementById(CTRL_STRINGS.STRINGS.CLOSE).addEventListener(CTRL_STRINGS.EVENTS.CLICK, uiCtrl.closeOverlay);
-        //document.getElementById(CTRL_STRINGS.STRINGS.UPDATE).addEventListener(CTRL_STRINGS.EVENTS.CLICK, !!!!!EVENT MISSING HERE!!!!!); PENDING
+        document.getElementById(CTRL_STRINGS.STRINGS.UPDATE).addEventListener(CTRL_STRINGS.EVENTS.CLICK, ctrlUpdateItems);
     };
 
     ctrlUpdateBudget = function() {
@@ -443,6 +468,22 @@ appController = (function(budgetCtrl, uiCtrl) {
         budgetResults = budgetCtrl.getBudget();
         uiCtrl.displayBudget(budgetResults);
     };
+
+    ctrlUpdateItems = function() {
+        let dataCurrentItem,
+            overlayParams;
+
+        dataCurrentItem = budgetCtrl.getItemFromData(ctrlEdit.id, ctrlEdit.type);
+        overlayParams = uiCtrl.getInputOverlay();
+
+        if (overlayParams.description !== dataCurrentItem.description || overlayParams.value !== dataCurrentItem.value) {
+            budgetCtrl.updateItemOnData(overlayParams.description, ctrlEdit.id, ctrlEdit.type, overlayParams.value);
+            uiCtrl.updateListItem(overlayParams.description, ctrlEdit.id, ctrlEdit.type, overlayParams.value);
+            ctrlUpdateBudget();
+            ctrlUpdateItemsPercentages();
+            uiCtrl.closeOverlay();
+        }
+    }
 
     ctrlUpdateItemsPercentages = function() {
         let percentages;
