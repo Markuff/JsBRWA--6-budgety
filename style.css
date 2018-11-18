@@ -25,6 +25,7 @@ body {
 
 .right { float: right; }
 .red { color: #FF5049 !important; }
+.red-background { background: #FF5049 !important; border: 1px solid #FF5049 !important;}
 .red-focus:focus { border: 1px solid #FF5049 !important; }
 
 /**********************************************
@@ -137,7 +138,9 @@ body {
 }
 
 .add__description,
-.add__value {
+.add__value,
+.update__description,
+.update__value {
     border: 1px solid #e7e7e7;
     background-color: #fff;
     color: inherit;
@@ -149,8 +152,11 @@ body {
     transition: border 0.3s;
 }
 
-.add__description { width: 400px;}
-.add__value { width: 100px;}
+.add__description,
+.update__description { width: 400px;}
+
+.add__value,
+.update__value { width: 100px;}
 
 .add__btn {
     font-size: 35px;
@@ -166,9 +172,11 @@ body {
 
 .add__btn:active { transform: translateY(2px); }
 
-.add__type:focus,
 .add__description:focus,
-.add__value:focus {
+.add__type:focus,
+.add__value:focus,
+.update__description:focus,
+.update__value:focus {
     outline: none;
     border: 1px solid #28B9B5;
 }
@@ -232,22 +240,29 @@ h2 {
 }
 
 .income .item__value,
-.income .item__delete--btn {
+.income .item__delete--btn,
+.income .item__update--btn {
     color: #28B9B5;
 }
 
-.expenses .item__value,
+.expenses .item__delete--btn,
 .expenses .item__percentage,
-.expenses .item__delete--btn {
+.expenses .item__update--btn,
+.expenses .item__value {
     color: #FF5049;
 }
 
+.item__update {
+    margin-right: 7px;
+}
 
-.item__delete {
+.item__delete,
+.item__update {
     float: left;
 }
 
-.item__delete--btn {
+.item__delete--btn,
+.item__update--btn {
     font-size: 22px;
     background: none;
     border: none;
@@ -258,12 +273,15 @@ h2 {
     display: none;
 }
 
-.item__delete--btn:focus { outline: none; }
 .item__delete--btn:active { transform: translateY(2px); }
+.item__delete--btn:focus { outline: none; }
+.item__update--btn:active { transform: translateY(2px); }
+.item__update--btn:focus { outline: none; }
 
 .item:hover .item__delete--btn { display: block; }
-.item:hover .item__value { transform: translateX(-20px); }
 .item:hover .item__percentage { transform: translateX(-20px); }
+.item:hover .item__update--btn { display: block; }
+.item:hover .item__value { transform: translateX(-20px); }
 
 
 .unpaid {
@@ -276,3 +294,61 @@ h2 {
 .unpaid .item__percentage { box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.1); }
 .unpaid:hover .item__description { font-weight: 900; }
 
+
+/**********************************************
+*** UPDATE OVERLAY
+**********************************************/
+.update__overlay {
+    background-color: rgba(33, 33, 33, 0.65);
+    display: none;
+    height: 100%;
+    left: 0;
+    position: fixed;
+    top: 0;
+    width: 100%;
+}
+
+.box {
+    background-color: #f7f7f7;
+    border-radius: 5px;
+    margin: 30vh auto;
+    max-width: 565px;
+    padding: 20px 25px;
+}
+
+.close__overlay--btn {
+    background: none;
+    border: none;
+    color: #28B9B5;
+    cursor: pointer;
+    font-size: 35px;
+    left: 500px;
+    line-height: 1.1;
+    position: relative;
+    top: -15px;
+    vertical-align: middle;
+}
+
+.update--btn {
+    background: #28B9B5;
+    border: solid 1px #28B9B5;
+    color: #000;
+    cursor: pointer;
+    display: block;
+    font-size: 13px;
+    margin: 0 auto;
+    padding: 12px;
+    text-align: center;
+    text-transform: uppercase;
+    width: 150px;
+}
+
+.update__description,
+.update__value {
+    display: inline-block;
+    margin: 0 auto 10px;
+}
+
+.update__description {
+    margin-right: 10px;
+}

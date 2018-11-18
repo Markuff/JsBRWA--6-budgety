@@ -1,0 +1,100 @@
+{
+	"years": {
+		"2018": {
+			"january": {
+				"allItems": {
+					"exp": [{
+							"description": "Groceries",
+							"id": 0,
+							"percentage": 14,
+							"value": 750
+						},
+						{
+							"description": "Rent",
+							"id": 1,
+							"percentage": 34,
+							"value": 1800
+						},
+						{
+							"description": "Services",
+							"id": 2,
+							"percentage": 7,
+							"value": 350
+						},
+						{
+							"description": "Transport",
+							"id": 3,
+							"percentage": 4,
+							"value": 200
+						},
+						{
+							"description": "Investment",
+							"id": 4,
+							"percentage": 19,
+							"value": 1000
+						},
+						{
+							"description": "For taxes",
+							"id": 5,
+							"percentage": 6,
+							"value": 300
+						}
+					],
+					"inc": [{
+							"description": "Salary",
+							"id": 0,
+							"value": 4000
+						},
+						{
+							"description": "Bonus",
+							"id": 1,
+							"value": 1300
+						}
+					]
+				},
+				"budgetTotal": 900,
+				"percentage": 83,
+				"totals": {
+					"exp": 4400,
+					"inc": 5300
+				}
+			},
+			"february": {
+
+			},
+			"march": {
+
+			},
+			"april": {
+
+			},
+			"may": {
+
+			},
+			"june": {
+
+			},
+			"july": {
+
+			},
+			"august": {
+
+			},
+			"september": {
+
+			},
+			"october": {
+
+			},
+			"november": {
+
+			},
+			"december": {
+
+			}
+		},
+		"2017": {
+
+		}
+	}
+}

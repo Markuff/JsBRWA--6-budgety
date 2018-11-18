@@ -20,7 +20,7 @@ budgetController = (function() {
         percentage: -1,
         totals: {
             exp: 0,
-            inc:0
+            inc: 0
         }
     };
 
@@ -125,6 +125,9 @@ budgetController = (function() {
                 totalPercentage: data.percentage
             };
         },
+        getItemFromData: function(itemId, itemType) {
+            return data.allItems[itemType][itemId];
+        },
         getPercentages: function() {
             let allPercentages;
 
@@ -134,12 +137,16 @@ budgetController = (function() {
 
             return allPercentages;
         },
-        /*
-        // Not for production, just for testing , REMOVE AT THE END
-        testing: function() {
-            console.log(data);
-        }
-        */
+        updateItemOnData: function(desc, id, type, val) {
+            data.allItems[type][id].description = desc;
+            data.allItems[type][id].value = val;
+        },
+/*
+// Not for production, just for testing , REMOVE AT THE END
+testing: function() {
+    console.log(data);
+}
+*/
     };
 })();
 
@@ -154,6 +161,7 @@ uiController = (function() {
             ADD_DESCRIPTION: '.add__description',
             ADD_TYPE: '.add__type',
             ADD_VALUE: '.add__value',
+            CLOSE_OVERLAY_BTN: '.close__overlay--btn',
             BUDGET_LABEL: '.budget__value',
             BUDGET_EXPENSE_LABEL: '.budget__expenses--value',
             BUDGET_INCOME_LABEL: '.budget__income--value',
@@ -162,31 +170,46 @@ uiController = (function() {
             CONTAINER: '.container',
             EXPENSE_ITEM_PERCENTAGE: '.item__percentage',
             EXPENSES_LIST_CONTAINER: '.expenses__list',
-            INCOMES_LIST_CONTAINER: '.income__list'
+            INCOMES_LIST_CONTAINER: '.income__list',
+            UPDATE_BTN: '.update--btn',
+            UPDATE_DESCRIPTION: '.update__description',
+            UPDATE_VALUE: '.update__value'
         },
         EVENTS: {
             CHANGE: 'change',
             CLICK: 'click',
-            KEYPRESS: 'keypress'
+            KEYUP: 'keyup'
         },
         HTML: {
-            EXPENSE: '<div class="item clearfix" id="exp-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>',
-            INCOME: '<div class="item clearfix" id="inc-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
+            EXPENSE: '<div class="item clearfix" id="exp-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">21%</div><div class="item__update"><button class="item__update--btn"><i class="ion-ios-settings"></i></button></div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>',
+            INCOME: '<div class="item clearfix" id="inc-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__update"><button class="item__update--btn"><i class="ion-ios-settings"></i></button></div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
         },
         PARAMETERS: {
             BEFORE_END: 'beforeend'
         },
         STRINGS: {
+            BLOCK: 'block',
+            BUTTON: 'BUTTON',
+            CLOSE: 'close',
+            ENTER: 'Enter',
+            ESCAPE: 'Escape',
             EXP: 'exp',
+            HYPHEN: '-',
             INC: 'inc',
+            ITEM_DELETE: 'item__delete',
+            ITEM_UPDATE: 'item__update',
             MINUS: '-',
+            NONE: 'none',
+            OVERLAY: 'overlay',
             PERCENTAGE_LESS_THAN_ONE: '---',
             PLUS: '+',
             RED: 'red',
+            RED_BACKGROUND: 'red-background',
             RED_FOCUS: 'red-focus',
             REPLACE_DESCRIPTION: '%description%',
             REPLACE_ID: '%id%',
-            REPLACE_VALUE: '%value%'
+            REPLACE_VALUE: '%value%',
+            UPDATE: 'update'
         }
     };
 
@@ -240,7 +263,7 @@ uiController = (function() {
         changeType: function() {
             let button,
                 fields;
-            
+
             button = document.querySelector(CONSTS_STRINGS.CLASSES.ADD_BTN);
             fields = document.querySelectorAll(`${CONSTS_STRINGS.CLASSES.ADD_DESCRIPTION},${CONSTS_STRINGS.CLASSES.ADD_TYPE},${CONSTS_STRINGS.CLASSES.ADD_VALUE}`);
 
@@ -263,6 +286,9 @@ uiController = (function() {
             });
 
             listArray[0].focus();
+        },
+        closeOverlay: function() {
+            document.getElementById(CONSTS_STRINGS.STRINGS.OVERLAY).style.display = CONSTS_STRINGS.STRINGS.NONE;
         },
         deleteListItem: function(selectorId) {
             let element;
@@ -321,15 +347,42 @@ uiController = (function() {
                 type: document.querySelector(CONSTS_STRINGS.CLASSES.ADD_TYPE).value,
                 value: parseFloat(document.querySelector(CONSTS_STRINGS.CLASSES.ADD_VALUE).value)
             }
-        }
+        },
+        getInputOverlay: function() {
+            return {
+                description: document.querySelector(CONSTS_STRINGS.CLASSES.UPDATE_DESCRIPTION).value,
+                value: parseInt(document.querySelector(CONSTS_STRINGS.CLASSES.UPDATE_VALUE).value)
+            }
+        },
+        openOverlay: function(desc, type, val) {
+            if (type === CONSTS_STRINGS.STRINGS.EXP) {
+                document.querySelector(CONSTS_STRINGS.CLASSES.CLOSE_OVERLAY_BTN).classList.toggle(CONSTS_STRINGS.STRINGS.RED);
+                document.querySelector(CONSTS_STRINGS.CLASSES.UPDATE_BTN).classList.toggle(CONSTS_STRINGS.STRINGS.RED_BACKGROUND);
+                document.querySelector(CONSTS_STRINGS.CLASSES.UPDATE_DESCRIPTION).classList.toggle(CONSTS_STRINGS.STRINGS.RED_FOCUS);
+                document.querySelector(CONSTS_STRINGS.CLASSES.UPDATE_VALUE).classList.toggle(CONSTS_STRINGS.STRINGS.RED_FOCUS);
+            }
+
+            document.getElementById(CONSTS_STRINGS.STRINGS.OVERLAY).style.display = CONSTS_STRINGS.STRINGS.BLOCK;
+            document.querySelector(CONSTS_STRINGS.CLASSES.UPDATE_DESCRIPTION).value = desc;
+            document.querySelector(CONSTS_STRINGS.CLASSES.UPDATE_VALUE).value = val;
+        },
+        updateListItem: function(desc, id, type, val) {
+            let item;
+
+            item = document.getElementById(`${type}-${id}`).children;
+            item[0].textContent = desc;
+            item[1].children[0].textContent = formatNumbers(val, type);
+        },
     }
 })();
 
 appController = (function(budgetCtrl, uiCtrl) {
     let ctrlAddItem,
-        ctrlDeleteItem,
+        ctrlEdit,
+        ctrlManageItem,
         ctrlSetEventsListeners,
         ctrlUpdateBudget,
+        ctrlUpdateItems,
         ctrlUpdateItemsPercentages,
         CTRL_STRINGS;
 
@@ -349,22 +402,41 @@ appController = (function(budgetCtrl, uiCtrl) {
         }
     };
 
-    ctrlDeleteItem = function(e) {
-        let listItemDomId,
+    ctrlManageItem = function(e) {
+        let absoluteTarget,
+            itemData,
+            listItemDomId,
             listItemId,
             listItemType,
-            split;
+            listItemEventChecker,
+            splitForId;
 
-        listItemDomId = e.target.parentNode.parentNode.parentNode.parentNode.id;
+        // Validation for diferentiation of e.target on Chrome and FireFox browsers
+        e.target.tagName === CTRL_STRINGS.STRINGS.BUTTON ? absoluteTarget = e.target : absoluteTarget = e.target.parentNode;
+        listItemDomId = absoluteTarget.parentNode.parentNode.parentNode.id;
+        listItemEventChecker = absoluteTarget.parentNode.className;
 
         if (listItemDomId) {
-            split = listItemDomId.split('-');
-            listItemId = parseInt(split[1]);
-            listItemType = split[0];
+            splitForId = listItemDomId.split(CTRL_STRINGS.STRINGS.HYPHEN);
+            listItemId = parseInt(splitForId[1]);
+            listItemType = splitForId[0];
+            itemData = budgetCtrl.getItemFromData(listItemId, listItemType);
         }
 
-        budgetCtrl.deleteItemFromData(listItemId, listItemType);
-        uiCtrl.deleteListItem(listItemDomId);
+        if (listItemEventChecker === CTRL_STRINGS.STRINGS.ITEM_DELETE) {
+            // Delete item
+            budgetCtrl.deleteItemFromData(listItemId, listItemType);
+            uiCtrl.deleteListItem(listItemDomId);
+        } else {
+            // Update item
+            ctrlEdit =  {
+                id: itemData.id,
+                type: listItemType
+            };
+
+            uiCtrl.openOverlay(itemData.description, ctrlEdit.type, itemData.value);
+        }
+
         ctrlUpdateBudget();
         ctrlUpdateItemsPercentages();
     };
@@ -372,15 +444,21 @@ appController = (function(budgetCtrl, uiCtrl) {
     ctrlSetEventsListeners = function() {
         CTRL_STRINGS = uiCtrl.getConstsStrings();
 
-        document.querySelector(CTRL_STRINGS.CLASSES.ADD_BTN).addEventListener(CTRL_STRINGS.EVENTS.CLICK, ctrlAddItem);
         // e references event being passed
-        document.addEventListener(CTRL_STRINGS.EVENTS.KEYPRESS, function(e) {
-            if (e.keyCode === 13 || e.which === 13) {
+        document.addEventListener(CTRL_STRINGS.EVENTS.KEYUP, function(e) {
+            if (e.keyCode === 13 || e.which === 13 || e.key === CTRL_STRINGS.STRINGS.ENTER) {
                 ctrlAddItem();
             }
+
+            if (e.keyCode === 27 || e.which === 27 || e.key === CTRL_STRINGS.STRINGS.ESCAPE) {
+                uiCtrl.closeOverlay();
+            }
         });
-        document.querySelector(CTRL_STRINGS.CLASSES.CONTAINER).addEventListener(CTRL_STRINGS.EVENTS.CLICK, ctrlDeleteItem);
+        document.querySelector(CTRL_STRINGS.CLASSES.ADD_BTN).addEventListener(CTRL_STRINGS.EVENTS.CLICK, ctrlAddItem);
+        document.querySelector(CTRL_STRINGS.CLASSES.CONTAINER).addEventListener(CTRL_STRINGS.EVENTS.CLICK, ctrlManageItem);
         document.querySelector(CTRL_STRINGS.CLASSES.ADD_TYPE).addEventListener(CTRL_STRINGS.EVENTS.CHANGE, uiCtrl.changeType);
+        document.getElementById(CTRL_STRINGS.STRINGS.CLOSE).addEventListener(CTRL_STRINGS.EVENTS.CLICK, uiCtrl.closeOverlay);
+        document.getElementById(CTRL_STRINGS.STRINGS.UPDATE).addEventListener(CTRL_STRINGS.EVENTS.CLICK, ctrlUpdateItems);
     };
 
     ctrlUpdateBudget = function() {
@@ -390,6 +468,22 @@ appController = (function(budgetCtrl, uiCtrl) {
         budgetResults = budgetCtrl.getBudget();
         uiCtrl.displayBudget(budgetResults);
     };
+
+    ctrlUpdateItems = function() {
+        let dataCurrentItem,
+            overlayParams;
+
+        dataCurrentItem = budgetCtrl.getItemFromData(ctrlEdit.id, ctrlEdit.type);
+        overlayParams = uiCtrl.getInputOverlay();
+
+        if (overlayParams.description !== dataCurrentItem.description || overlayParams.value !== dataCurrentItem.value) {
+            budgetCtrl.updateItemOnData(overlayParams.description, ctrlEdit.id, ctrlEdit.type, overlayParams.value);
+            uiCtrl.updateListItem(overlayParams.description, ctrlEdit.id, ctrlEdit.type, overlayParams.value);
+            ctrlUpdateBudget();
+            ctrlUpdateItemsPercentages();
+            uiCtrl.closeOverlay();
+        }
+    }
 
     ctrlUpdateItemsPercentages = function() {
         let percentages;
