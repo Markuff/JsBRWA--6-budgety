@@ -46,6 +46,7 @@ const CONSTS_STRINGS = {
         ITEM_DELETE: 'item__delete',
         ITEM_UPDATE: 'item__update',
         MINUS: '-',
+        MONTH: 'month',
         NONE: 'none',
         OVERLAY: 'overlay',
         PERCENTAGE_LESS_THAN_ONE: '---',
@@ -56,7 +57,8 @@ const CONSTS_STRINGS = {
         REPLACE_DESCRIPTION: '%description%',
         REPLACE_ID: '%id%',
         REPLACE_VALUE: '%value%',
-        UPDATE: 'update'
+        UPDATE: 'update',
+        YEAR: 'year'
     }
 };
 

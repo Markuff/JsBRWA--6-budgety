@@ -9,11 +9,14 @@ appController = (function(budgetCtrl, uiCtrl) {
     
     let ctrlAddItem,
         ctrlEdit,
+        ctrlLoadDataFromDate,
         ctrlManageItem,
         ctrlSetEventsListeners,
         ctrlUpdateBudget,
         ctrlUpdateItems,
-        ctrlUpdateItemsPercentages;
+        ctrlUpdateItemsPercentages,
+        selectedDate,
+        something;
 
     ctrlAddItem = function() {
         let input,
@@ -28,6 +31,19 @@ appController = (function(budgetCtrl, uiCtrl) {
             uiCtrl.clearFields();
             ctrlUpdateBudget();
             ctrlUpdateItemsPercentages();
+        }
+    };
+
+    ctrlLoadDataFromDate = function() {
+        let newDate,
+            previousDate;
+
+        previousDate = selectedDate;
+        newDate = uiCtrl.getDate();
+
+        if (previousDate.selectedMonth !== newDate.selectedMonth || previousDate.selectedYear !== newDate.selectedYear) {
+            something = budgetCtrl.getDataFromDate(previousDate.selectedMonth, previousDate.selectedYear, newDate.selectedMonth, newDate.selectedYear);
+            console.log('something: ', something);
         }
     };
 
@@ -71,8 +87,6 @@ appController = (function(budgetCtrl, uiCtrl) {
     };
 
     ctrlSetEventsListeners = function() {
-        //CONSTS_STRINGS = uiCtrl.getConstsStrings();
-
         // e references event being passed
         document.addEventListener(CONSTS_STRINGS.EVENTS.KEYUP, function(e) {
             if (e.keyCode === 13 || e.which === 13 || e.key === CONSTS_STRINGS.STRINGS.ENTER) {
@@ -86,6 +100,8 @@ appController = (function(budgetCtrl, uiCtrl) {
         document.querySelector(CONSTS_STRINGS.CLASSES.ADD_BTN).addEventListener(CONSTS_STRINGS.EVENTS.CLICK, ctrlAddItem);
         document.querySelector(CONSTS_STRINGS.CLASSES.CONTAINER).addEventListener(CONSTS_STRINGS.EVENTS.CLICK, ctrlManageItem);
         document.querySelector(CONSTS_STRINGS.CLASSES.ADD_TYPE).addEventListener(CONSTS_STRINGS.EVENTS.CHANGE, uiCtrl.changeType);
+        document.getElementById(CONSTS_STRINGS.STRINGS.MONTH).addEventListener(CONSTS_STRINGS.EVENTS.CHANGE, ctrlLoadDataFromDate);
+        document.getElementById(CONSTS_STRINGS.STRINGS.YEAR).addEventListener(CONSTS_STRINGS.EVENTS.CHANGE, ctrlLoadDataFromDate);
         document.getElementById(CONSTS_STRINGS.STRINGS.CLOSE).addEventListener(CONSTS_STRINGS.EVENTS.CLICK, uiCtrl.closeOverlay);
         document.getElementById(CONSTS_STRINGS.STRINGS.UPDATE).addEventListener(CONSTS_STRINGS.EVENTS.CLICK, ctrlUpdateItems);
     };
@@ -121,6 +137,7 @@ appController = (function(budgetCtrl, uiCtrl) {
         percentages = budgetCtrl.getPercentages();
         uiCtrl.displayPercentages(percentages);
     };
+
     return  {
         init: function() {
             uiCtrl.displayBudget({
@@ -129,15 +146,13 @@ appController = (function(budgetCtrl, uiCtrl) {
                 totalIncome: 0,
                 totalPercentage: -1
             });
-            uiCtrl.displayDate();
+            selectedDate = uiCtrl.displayDate();
+            budgetCtrl.getDataFromJson();
             ctrlSetEventsListeners();
         },
         // Not for production, just for testing , REMOVE AT THE END
         testing: function() {
             budgetCtrl.testing();
-        },
-        jsonData: function() {
-            budgetCtrl.getDataFromJson();
         }
     }
 })(budgetController, uiController);
@@ -145,5 +160,4 @@ appController = (function(budgetCtrl, uiCtrl) {
 appController.init();
 
 // Not for production, just for testing , REMOVE AT THE END
-appController.testing();
-appController.jsonData();
+//appController.testing();
