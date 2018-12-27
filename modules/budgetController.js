@@ -6,8 +6,11 @@ let budgetController;
 budgetController = (function() {
     let calculateTotal,
         data,
+        dataComplete,
+        dataReserve,
         Expense,
-        Income;
+        Income,
+        processData;
 
     data = {
         allItems: {
@@ -22,6 +25,8 @@ budgetController = (function() {
             inc: 0
         }
     };
+    dataComplete = {};
+    dataReserve = {};
 
     Expense = function(desc, id, val) {
         this.description = desc;
@@ -30,8 +35,14 @@ budgetController = (function() {
         this.value = val;
     };
 
+    Income = function(desc, id, val) {
+        this.description = desc;
+        this.id = id;
+        this.value = val;
+    };
+
     Expense.prototype.calcPercentages = function(totalIncome) {
-        if(totalIncome  > 0) {
+        if (totalIncome  > 0) {
             this.percentage = Math.round((this.value / totalIncome) * 100);
         } else {
             this.percentage = -1;
@@ -40,12 +51,6 @@ budgetController = (function() {
 
     Expense.prototype.getPercentage = function() {
         return this.percentage;
-    };
-
-    Income = function(desc, id, val) {
-        this.description = desc;
-        this.id = id;
-        this.value = val;
     };
 
     calculateTotal = function(typeOfTotal) {
@@ -58,6 +63,10 @@ budgetController = (function() {
         });
 
         data.totals[typeOfTotal] = total;
+    };
+
+    processData = function(dataFromJson) {
+        dataComplete = dataFromJson;
     };
 
     return {
@@ -119,14 +128,27 @@ budgetController = (function() {
                 totalPercentage: data.percentage
             };
         },
+        getDataFromDate: function(oldMonth, oldYear, newMonth, newYear) {
+            let lowerCaseMonth;
+
+            dataReserve = {
+                data: data,
+                month: oldMonth,
+                year: oldYear
+            };
+            lowerCaseMonth = newMonth.toLowerCase();
+
+            return dataComplete.years[newYear].months[lowerCaseMonth].allItems;
+        },
         getDataFromJson: function() {
             let request,
                 requestedData;
 
             request = new XMLHttpRequest();
             request.onreadystatechange = function() {
-                if(this.readyState === 4 && this.status === 200) {
+                if (this.readyState === 4 && this.status === 200) {
                     requestedData = JSON.parse(request.responseText);
+                    processData(requestedData);
                 }
             }
             request.open('GET', '../json/content.json', true);

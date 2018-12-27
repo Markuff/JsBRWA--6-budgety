@@ -12,7 +12,28 @@
         <div class="top">
             <div class="budget">
                 <div class="budget__title">
-                    Available Budget in <span class="budget__title--month">%Month%</span>:
+                    Available Budget in 
+                    <span class="budget__title--month">
+                        <select id="month" class="month selection_btn">
+                            <option value="January">January</option>
+                            <option value="February">February</option>
+                            <option value="March">March</option>
+                            <option value="April">April</option>
+                            <option value="May">May</option>
+                            <option value="June">June</option>
+                            <option value="July">July</option>
+                            <option value="August">August</option>
+                            <option value="September">September</option>
+                            <option value="October">October</option>
+                            <option value="November">November</option>
+                            <option value="December">December</option>
+                        </select>
+                         | 
+                        <select id="year" class="year selection_btn">
+                            <option value="2017">2017</option>
+                            <option value="2018">2018</option>
+                        </select>
+                    </span>:
                 </div>
                 <div class="budget__value">+ 2,345.64</div>
                 <div class="budget__income clearfix">

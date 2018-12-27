@@ -42,7 +42,7 @@ body {
 
 .budget {
     position: absolute;
-    width: 350px;
+    width: 360px;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -351,4 +351,14 @@ h2 {
 
 .update__description {
     margin-right: 10px;
+}
+/**/
+.selection_btn {
+    background: rgba(0, 0, 0, 0.25);
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-family: Open Sans;
+    font-size: 16px;
+    font-weight: 300;
 }

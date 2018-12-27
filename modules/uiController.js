@@ -112,8 +112,20 @@ uiController = (function() {
             now = new Date();
             month = now.getMonth();
             year = now.getFullYear();
-            
-            document.querySelector(CONSTS_STRINGS.CLASSES.BUDGET_TITLE_MONTH).textContent = `${CONSTS_STRINGS.OTHER.MONTHS[month]} | ${year}`;
+            year = year.toString();
+
+            document.getElementById(CONSTS_STRINGS.STRINGS.MONTH).options[month].selected = true;
+
+            for (let element in document.getElementById(CONSTS_STRINGS.STRINGS.YEAR).options) {
+                if (document.getElementById(CONSTS_STRINGS.STRINGS.YEAR).options[element].value === year) {
+                    document.getElementById(CONSTS_STRINGS.STRINGS.YEAR).options[element].selected = true;
+                }
+            };
+
+            return {
+                selectedMonth: CONSTS_STRINGS.OTHER.MONTHS[month],
+                selectedYear: year.toString()
+            };
         },
         displayPercentages: function(percentages) {
             let fields;
@@ -128,8 +140,11 @@ uiController = (function() {
                 }
             });
         },
-        getConstsStrings: function() {
-            return CONSTS_STRINGS;
+        getDate: function() {
+            return {
+                selectedMonth: document.getElementById(CONSTS_STRINGS.STRINGS.MONTH).value,
+                selectedYear: document.getElementById(CONSTS_STRINGS.STRINGS.YEAR).value
+            }
         },
         getInput: function() {
             return {
